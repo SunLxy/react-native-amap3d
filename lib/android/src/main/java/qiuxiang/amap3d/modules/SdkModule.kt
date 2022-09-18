@@ -12,6 +12,9 @@ import com.amap.api.location.CoordinateConverter
 import com.amap.api.location.CoordinateConverter.CoordType
 import qiuxiang.amap3d.toJson
 import qiuxiang.amap3d.toLatLng
+import com.facebook.react.bridge.Arguments
+import com.facebook.react.bridge.ReadableMap
+import com.amap.api.location.DPoint;
 
 @Suppress("unused")
 class SdkModule(val context: ReactApplicationContext) : ReactContextBaseJavaModule() {
@@ -37,14 +40,14 @@ class SdkModule(val context: ReactApplicationContext) : ReactContextBaseJavaModu
 
   // 计算距离
   @ReactMethod
-  fun calculateLineDistance(latLng1:LatLng,latLng2:LatLng, promise: Promise) {
+  fun calculateLineDistance(latLng1:ReadableMap,latLng2:ReadableMap, promise: Promise) {
     promise.resolve(AMapUtils.calculateLineDistance(latLng1.toLatLng(),latLng2.toLatLng()))
   }
 
   // 坐标转换
   @ReactMethod
-  fun coordinateConverter(latLng:LatLng,type:CoordType,promise: Promise) {
-    converter = new CoordinateConverter()
+  fun coordinateConverter(latLng:ReadableMap,type:Int,promise: Promise) {
+    val converter = CoordinateConverter(context.getApplicationContext())
     /**
     * 设置坐标来源,这里使用百度坐标作为示例
     * 可选的来源包括：
@@ -56,32 +59,27 @@ class SdkModule(val context: ReactApplicationContext) : ReactContextBaseJavaModu
     * - CoordType.GOOGLE: 谷歌坐标
     * - CoordType.GPS: GPS坐标
     */
-    switch (type) {
-        case 0:
-            converter.from(CoordType.BAIDU);
-            break;
-        case 1:
-            converter.from(CoordType.MAPBAR);
-            break;
-        case 2:
-            converter.from(CoordType.MAPABC);
-            break;
-        case 3:
-            converter.from(CoordType.SOSOMAP);
-            break;
-        case 4:
-            converter.from(CoordType.ALIYUN);
-            break;
-        case 5:
-            converter.from(CoordType.GOOGLE);
-            break;
-        case 6:
-            converter.from(CoordType.GPS);
-            break;
-            default: break;
+    when (type) {
+      0 -> converter.from(CoordType.BAIDU)
+      1 -> converter.from(CoordType.MAPBAR)
+      2 -> converter.from(CoordType.MAPABC)
+      3 -> converter.from(CoordType.SOSOMAP)
+      4 -> converter.from(CoordType.ALIYUN)
+      5 -> converter.from(CoordType.GOOGLE)
+      6 -> converter.from(CoordType.GPS)
+      else -> { // 注意这个块
+      }
     }
-    converter.coord(latLng)
-    desLatLng = converter.convert()
-    promise.resolve(desLatLng.toJson())
+    var pointer =  DPoint(
+        latLng.getDouble("latitude"),
+        latLng.getDouble("longitude")
+    );
+    converter.coord(pointer)
+    val destPoint = converter.convert()
+    val map = Arguments.createMap().apply{
+      putDouble("latitude", destPoint.getLatitude())
+      putDouble("longitude", destPoint.getLongitude())
+    };
+    promise.resolve(map)
   }
 }

@@ -31,6 +31,16 @@ export default () => {
     AMapSdk.getVersion().then((version) => {
       navigation.setOptions({ headerRight: () => <Text>v{version}</Text> });
     });
+    const latlag = {
+      latitude: 31.200475906371626,
+      longitude: 121.26297997946493
+    }
+    AMapSdk.calculateLineDistance(latlag, latlag).then((result) => {
+      console.log("calculateLineDistance--->", result)
+    });
+    AMapSdk.coordinateConverter(latlag, 6).then((result) => {
+      console.log("coordinateConverter--->", result)
+    });
   }, []);
   return (
     <ScrollView>
