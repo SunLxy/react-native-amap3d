@@ -45,6 +45,10 @@ export default () => {
     AMapSdk.coordinateConverter(latlag, 6).then((result) => {
       console.log("coordinateConverter--->", result)
     });
+    AMapSdk.start()
+    AMapSdk.addLocationListener((result: any) => {
+      console.log("rest", result)
+    })
   }, []);
   return (
     <ScrollView>
