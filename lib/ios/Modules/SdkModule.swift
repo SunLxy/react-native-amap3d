@@ -3,11 +3,12 @@ class AMapSdk: NSObject {
   @objc static func requiresMainQueueSetup() -> Bool {
     false
   }
-  var locationManager;
+  var locationManager:AMapLocationManager?
 
-  @objc func supportedEvents(){
-    return ["AMapGeolocation" ]
+  @objc func supportedEvents() -> [String]?{
+    return ["AMapGeolocation"]
   }
+
 
   @objc func initSDK(_ apiKey: String) {
     AMapServices.shared().apiKey = apiKey
@@ -39,7 +40,7 @@ class AMapSdk: NSObject {
   }
 
   // 坐标转换
-  @objc func coordinateConverter(_ latLng:NSDictionary,type :Int, resolve _: RCTPromiseResolveBlock, reject _: RCTPromiseRejectBlock) {
+  @objc func coordinateConverter(_ latLng:NSDictionary,type :Int, resolve : RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) {
     let typeObj=AMapCoordinateTypeGPS;
     switch type {
       case -1  :
@@ -67,8 +68,16 @@ class AMapSdk: NSObject {
     resolve(json)
   }
 
-  func amapLocationManager(_ manager: AMapLocationManager!, didUpdate location: CLLocation!) {
-    self.sendEventWithName("AMapGeolocation",reGeocode(location))
+  @objc func amapLocationManager(_ manager: AMapLocationManager!, doRequireLocationAuth locationManager: CLLocationManager!) {
+    locationManager.requestAlwaysAuthorization()
+  }
+
+  @objc func amapLocationManager(_ manager: AMapLocationManager!, didUpdate location: CLLocation!) {
+    self.sendEvent(withName: "AMapGeolocation", body: reGeocode(location))
+  }
+
+  @objc func amapLocationManager(_ manager: AMapLocationManager!, didFailWithError error: NSError!) {
+    self.sendEvent(withName: "AMapGeolocation", body: {["errorCode":error.code,"errorInfo": error.localizedDescription]})
   }
 
   func reGeocode(_ location: CLLocation!, reGeocode: AMapLocationReGeocode!) {
